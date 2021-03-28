@@ -174,11 +174,211 @@ namespace SolidDesignPrinciples
     //    }
     //}
 
-#endregion
+    #endregion
 
-
-    class Program
+    #region LiskovSubstitutuinPrincipleClasses
+    public class Rectangle
     {
+        public virtual int Width { get; set; }
+        public virtual int Height { get; set; }
+        public Rectangle()
+        {
+
+        }
+
+        public Rectangle(int w, int h)
+        {
+            Width = w;
+            Height = h;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(Width)} : {Width} ,{nameof(Height)} : {Height} ";
+        }
+    }
+
+    public class Square : Rectangle
+    {
+        public override int Width { set => base.Width = base.Height = value; }
+        public override int Height { set => base.Width = base.Height = value; }
+    }
+    #endregion
+
+    #region InterfaceSegregationPrinciple
+    public class Document
+    {
+        public int number { get; set; }
+    }
+    // Chain me up in that way
+    public interface IMachine
+    {
+        void Print(Document d);
+        void Fax(Document d);
+        void Scan(Document d);
+    }
+
+    //Create The Machine
+    public class MultiFunctionPrinter : IMachine
+    {
+        public void Fax(Document d)
+        {
+            //
+        }
+
+        public void Print(Document d)
+        {
+            //
+        }
+
+        public void Scan(Document d)
+        {
+            //
+        }
+    }
+
+    public class OldFashionedPrinter : IMachine
+    {
+        public void Fax(Document d)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Print(Document d)
+        {
+            //
+        }
+
+        public void Scan(Document d)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    /// Free way
+    public interface IPrinter
+    {
+        void Print(Document d);
+    }
+
+    public interface IScanner
+    {
+        void Scan(Document d);
+    }
+
+    public class Printer : IPrinter
+    {
+        public void Print(Document d)
+        {
+
+        }
+    }
+
+    public class Photocopier : IScanner, IPrinter
+    {
+        public void Print(Document d)
+        {
+
+        }
+
+        public void Scan(Document d)
+        {
+
+        }
+    }
+
+    public interface IMultiFunctionDevice : IPrinter, IScanner
+    {
+
+    }
+
+    public struct MultiFunctionMachine : IMultiFunctionDevice
+    {
+        private IPrinter printer;
+        private IScanner scanner;
+        public MultiFunctionMachine(IPrinter printer, IScanner scanner)
+        {
+            if (printer is null)
+            {
+                throw new NotImplementedException();
+            }
+            if (scanner is null)
+            {
+                throw new NotImplementedException();
+            }
+            this.printer = printer;
+            this.scanner = scanner;
+        }
+        public void Print(Document d)
+        {
+            printer.Print(d);
+        }
+
+        public void Scan(Document d)
+        {
+            scanner.Scan(d);
+        }
+    }
+    #endregion
+
+    #region DependencyInversionPrinciple
+
+    //hl modules shoud not depend on low-level; both should depend on abstractions
+    //abstractions should not depend on details; details should depend on abstractions
+    public enum Relationship
+    {
+        Parent, Sibling, Child
+    }
+
+    public class Person
+    {
+        public string Name;
+    }
+
+    public interface IRelationShipBrowser
+    {
+        IEnumerable<Person> FindAllChildrenOf(string name);
+    }
+
+    public class Relationships : IRelationShipBrowser //Low Level
+    {
+        private List<(Person, Relationship, Person)> relations = new List<(Person, Relationship, Person)>();
+        public void AddParentAndChild(Person parent, Person child)
+        {
+            relations.Add((parent, Relationship.Parent, child));
+            relations.Add((child, Relationship.Child, parent));
+        }
+
+        public List<(Person, Relationship, Person)> Relations => relations;
+
+        public IEnumerable<Person> FindAllChildrenOf(string name)
+        {
+            return relations.Where(s => s.Item1.Name == name && s.Item2 == Relationship.Parent).Select(r => r.Item3);
+        }
+    }
+
+    public class Research
+    {
+        public Research(Relationships relationships)
+        {
+            //high-level: find all of x's children
+            //var relations=relationships.Relations;
+            //foreach(var r in relations.Where(s=>s.Item1.Name=="x" && s.Item2 == Relationship.Parent)){
+            //Console.WriteLine($"X has a child called {r.Item3.Name}");}
+        }
+
+        public Research(IRelationShipBrowser browser)
+        {
+            foreach (var p in browser.FindAllChildrenOf("John"))
+            {
+                Console.WriteLine($"John has a child called {p.Name}");
+            }
+        }
+    }
+    #endregion
+    public class Program
+    {
+        static public int Area(Rectangle r) => r.Width * r.Height;
         static void Main(string[] args)
         {
             #region Single Responsibility
@@ -228,8 +428,34 @@ namespace SolidDesignPrinciples
             //{
             //    Console.WriteLine($"- {p.Name} is Big and Blue");
             //}
-            //Console.ReadKey();
+
             #endregion
+
+            #region LiskovSubstitutuinPrinciple
+            //Rectangle rc = new Rectangle(2, 3);
+            //Console.WriteLine($"{rc} has Area {Area(rc)}");
+
+            ///*This is Square*/
+            //Rectangle sq = new Square();
+
+            //sq.Width = 4;
+            //Console.WriteLine($"{sq} has Area {Area(sq)}");
+            #endregion
+
+            #region DependencyInversionPrinciple
+            var parent = new Person() {Name="John" };
+            var child1 = new Person() {Name="Chris" };
+            var child2 = new Person() {Name="Matt" };
+
+
+            //low level module
+            var relationships = new Relationships();
+            relationships.AddParentAndChild(parent, child1);
+            relationships.AddParentAndChild(parent, child2);
+
+            new Research(relationships);
+            #endregion
+            Console.ReadKey();
         }
     }
 }
