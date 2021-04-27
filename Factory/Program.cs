@@ -8,11 +8,6 @@ namespace Factory
 {
     public class Point
     {
-        public enum CoordinateSystem
-        {
-            Cartesian,
-            Polar
-        }
 
         private double x, y;
 
@@ -39,9 +34,13 @@ namespace Factory
 
             public static Point NewPolarPoint(double rho,double theta)
             {
-                //businees for PolarPoint
-                return null;
+                return new Point(rho * Math.Cos(theta), rho * Math.Sin(theta));
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{x} {y}";
         }
 
     }
@@ -51,7 +50,8 @@ namespace Factory
         static void Main(string[] args)
         {
             var point = Point.Factory.NewCartesianPoint(0, 2);
-            Console.WriteLine(point.x);
+            var point1 = Point.Factory.NewPolarPoint(0, 2);
+            Console.WriteLine(point1);
             Console.ReadKey();
         }
     }
