@@ -353,7 +353,8 @@ namespace SolidDesignPrinciples
 
         public IEnumerable<Person> FindAllChildrenOf(string name)
         {
-            return relations.Where(s => s.Item1.Name == name && s.Item2 == Relationship.Parent).Select(r => r.Item3);
+            return relations.Where(s => s.Item1.Name == name && s.Item2 == Relationship.Parent)
+                .Select(r => r.Item3);
         }
     }
 
